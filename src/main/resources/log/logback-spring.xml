@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Configuration>
+    <appender name="consoleLog" class="ch.qos.logback.core.ConsoleAppender">
+        <!--layout  展现配置-->
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <!--具体格式-->
+            <pattern>
+                %d - %msg%n
+            </pattern>
+        </layout>
+
+    </appender>
+
+    <appender name="fileInfoLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--过滤 只输出只有 info级别     LevelFilter   过滤掉      -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <!--DENY  禁止 , NEUTRAL 中立 , ACCEPT  接受;-->
+            <!--如果是accept  就处理   如果是NEUTRAL  就忽略 这条规则 往下走这条-->
+            <!--匹配就禁止-->
+            <onMatch>DENY</onMatch>
+            <!--没有匹配上  使用这条规则-->
+            <onMismatch>ACCEPT</onMismatch>
+        </filter>
+
+        <encoder>
+            <pattern>
+                %msg%n
+            </pattern>
+        </encoder>
+        <!--滚动策略-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--路径-->
+            <fileNamePattern>/var/log/tomcat/study_elasticsearch/info.%d.log</fileNamePattern>
+        </rollingPolicy>
+    </appender>
+    <!--错误日志-->
+    <appender name="fileErrorLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--过滤 只输出error级别-->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <encoder>
+            <pattern>
+                %msg%n
+            </pattern>
+        </encoder>
+        <!--滚动策略-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--路径-->
+            <fileNamePattern>/var/log/tomcat/study_elasticsearch/error.%d.log</fileNamePattern>
+        </rollingPolicy>
+    </appender>
+    <root level="info">
+        <appender-ref ref="consoleLog"/>
+        <appender-ref ref="fileInfoLog"/>
+        <appender-ref ref="fileErrorLog"/>
+    </root>
+</Configuration>
