@@ -1,7 +1,11 @@
 package com.gxgeek.springboot.elasticsearch;
 
-import com.gxgeek.springboot.elasticsearch.form.BookBean;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
@@ -22,14 +26,16 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
+import com.gxgeek.springboot.elasticsearch.form.BookBean;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @SpringBootApplication
@@ -49,7 +55,7 @@ public class SpringbootElasticsearchApplication {
         return "index";
     }
 
-    //查询接口
+    //查询接口 http://localhost:8080/get/book/novel?id=2
     @GetMapping("/get/book/novel")
     public ResponseEntity get(@RequestParam(name = "id", defaultValue = "") String id) {
         if (StringUtils.isEmpty(id)) {
@@ -84,7 +90,7 @@ public class SpringbootElasticsearchApplication {
                     .field("title", bookBean.getTitle())
                     .field("author", bookBean.getAuthor())
                     .field("word_count", bookBean.getWord_count())
-                    .field("public_date", bookBean.getPublic_date())
+                    .field("publish_date", bookBean.getPublic_date())
                     .endObject();
             IndexResponse response = this.client.prepareIndex("book", "novel")
                     .setSource(builder).get();
@@ -97,7 +103,7 @@ public class SpringbootElasticsearchApplication {
 
     }
 
-    //增加接口
+    //修改接口
     @PutMapping("/update/book/novel")
     public ResponseEntity update(BookBean bookBean) {
         UpdateRequest request = new UpdateRequest("book", "novel", bookBean.getId());
@@ -142,16 +148,15 @@ public class SpringbootElasticsearchApplication {
         boolBuilder.filter(rangeQuery);
         SearchRequestBuilder builder = this.client.prepareSearch("book")
                     .setTypes("novel")
-                //Type 什么意思不懂
                     .setSearchType(SearchType.QUERY_THEN_FETCH)
                     .setQuery(boolBuilder)
                     .setFrom(0)
                     .setSize(10);
-//        log.info(String.valueOf(builder));
+   //     System.out.println(builder);
         SearchResponse response = builder.get();
 
         List<Map<String,Object>> result = new ArrayList<>();
-//        response.getHits().forEach((s)->result.add(s.getSource()));
+        response.getHits().forEach((s)->result.add(s.getSourceAsMap()));
         return new ResponseEntity(result, HttpStatus.OK);
 
     }
